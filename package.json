@@ -1,0 +1,21 @@
+{
+  "name": "musicman",
+  "version": "1.0.0",
+  "description": "AI Musical Companion that listens and plays along",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": ["midi", "ai", "music", "anthropic"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "dotenv": "^16.4.5",
+    "easymidi": "^3.0.1",
+    "@google-cloud/speech": "^6.7.0",
+    "node-record-lpcm16": "^1.0.1"
+  }
+}
