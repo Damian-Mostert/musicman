@@ -141,7 +141,7 @@ class AIMusician {
     return notes;
   }
 
-  async generateResponse(voiceCommand = null) {
+  async generateResponse(voiceCommand = null, contextOverride = null) {
     // If voice command provided, parse and return immediately
     if (voiceCommand) {
       const notes = this.parseVoiceCommand(voiceCommand);
@@ -160,7 +160,7 @@ class AIMusician {
     const detectedKey = this.detectKey(recentNotes);
     const avgNote = Math.round(recentNotes.reduce((a, b) => a + b, 0) / recentNotes.length);
     
-    const context = {
+    const context = contextOverride || {
       recent_notes: recentNotes.slice(-8),
       tempo: this.detectedTempo,
       intensity: Math.round(this.intensity * 100) / 100,
@@ -169,6 +169,9 @@ class AIMusician {
       remembered_phrases: this.melodies.slice(-2),
       voice_command: voiceCommand
     };
+    
+    const variationHint = context.variation ? `
+- Style variation: ${context.variation} (${context.variation === 'harmonic' ? 'focus on chord tones and harmony' : context.variation === 'melodic' ? 'focus on flowing melody' : 'focus on rhythmic patterns'})` : '';
     
     const prompt = `You are a jazz musician jamming with another player in real-time.
 
@@ -179,7 +182,7 @@ Musical Context:
 - Detected key: ${context.key}
 - Average pitch: ${context.avg_pitch}
 - Your previous phrases: ${JSON.stringify(context.remembered_phrases)}
-${voiceCommand ? `- Voice command: "${voiceCommand}"` : ''}
+${voiceCommand ? `- Voice command: "${voiceCommand}"` : ''}${variationHint}
 
 Respond musically by:
 1. ${voiceCommand ? 'Following the voice command if given' : 'Matching their energy and tempo feel'}
@@ -254,6 +257,21 @@ Respond ONLY with JSON: [{"note": 62, "velocity": 70, "duration": 0.5}, ...]`;
       intensity: Math.round(this.intensity * 100) / 100,
       key: this.detectKey(recentNotes),
       phrases_learned: this.melodies.length
+    };
+  }
+
+  getMusicalContext() {
+    const recentNotes = this.currentContext
+      .slice(-12)
+      .filter(c => c.note)
+      .map(c => c.note);
+    
+    return {
+      recent_notes: recentNotes.slice(-8),
+      tempo: this.detectedTempo,
+      intensity: Math.round(this.intensity * 100) / 100,
+      key: this.detectKey(recentNotes),
+      avg_pitch: recentNotes.length > 0 ? Math.round(recentNotes.reduce((a, b) => a + b, 0) / recentNotes.length) : 60
     };
   }
 }

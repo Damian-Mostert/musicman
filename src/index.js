@@ -6,6 +6,8 @@ import MIDIListener from './lib/listen.js';
 import MIDIPlayer from './lib/play.js';
 import AIMusician from './lib/think.js';
 import VoiceListener from './lib/voice.js';
+import MusicTheoryEngine from './lib/predict.js';
+import PredictionBuffer from './lib/buffer.js';
 import readline from 'readline';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,9 +26,13 @@ class MusicMan {
       process.env.AI_API_KEY,
       path.join(rootDir, 'storage')
     );
+    this.localEngine = new MusicTheoryEngine();
+    this.predictionBuffer = new PredictionBuffer(this.ai);
     this.responseQueue = [];
     this.voiceQueue = [];
     this.running = false;
+    this.lastBufferRefresh = 0;
+    this.bufferRefreshInterval = 2000; // Refresh every 2 seconds
   }
 
   loadSettings() {
@@ -78,6 +84,16 @@ class MusicMan {
       const state = this.ai.getMusicalState();
       console.log(`♪ Note ${msg.note} | Tempo: ${state.tempo} BPM | Key: ${state.key} | Energy: ${state.intensity}`);
       this.responseQueue.push(Date.now());
+      
+      // Refresh prediction buffer in background if needed
+      const now = Date.now();
+      if (now - this.lastBufferRefresh > this.bufferRefreshInterval) {
+        this.lastBufferRefresh = now;
+        const context = this.ai.getMusicalContext();
+        this.predictionBuffer.fillBuffer(context).catch(err => 
+          console.error('Buffer refresh error:', err.message)
+        );
+      }
     }
   }
 
@@ -88,7 +104,7 @@ class MusicMan {
 
   async responseLoop() {
     while (this.running) {
-      // Handle voice commands first
+      // Handle voice commands first (use AI directly)
       if (this.voiceQueue.length > 0) {
         const voiceCommand = this.voiceQueue.shift();
         const notes = await this.ai.generateResponse(voiceCommand);
@@ -99,15 +115,31 @@ class MusicMan {
         }
       }
       
-      // Handle MIDI responses
+      // Handle MIDI responses with hybrid approach
       if (this.responseQueue.length > 0) {
         this.responseQueue.shift();
         
-        await new Promise(resolve => setTimeout(resolve, 200));
+        const context = this.ai.getMusicalContext();
+        const recentNotes = context.recent_notes;
         
-        const notes = await this.ai.generateResponse();
+        // Try prediction buffer first (pre-generated AI response)
+        let notes = this.predictionBuffer.getBestMatch(context);
+        let source = 'AI-buffered';
+        
+        // Fallback to instant local engine if buffer empty
+        if (!notes || notes.length === 0) {
+          notes = this.localEngine.generateInstantResponse(
+            recentNotes,
+            context.tempo,
+            context.intensity,
+            context.key
+          );
+          source = 'Local';
+        }
+        
         if (notes && notes.length > 0) {
-          console.log(`🎹 AI responds: [${notes.map(n => n.note).join(', ')}]`);
+          const bufferStatus = this.predictionBuffer.getBufferStatus();
+          console.log(`🎹 ${source} responds: [${notes.map(n => n.note).join(', ')}] (buffer: ${bufferStatus.size})`);
           await this.playNotes(notes);
         }
       }
