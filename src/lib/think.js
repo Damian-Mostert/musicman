@@ -76,13 +76,16 @@ class AIMusician {
     
     const intervals = [];
     for (let i = 1; i < this.noteTimes.length; i++) {
-      intervals.push(this.noteTimes[i] - this.noteTimes[i - 1]);
+      const gap = this.noteTimes[i] - this.noteTimes[i - 1];
+      // Only count gaps that feel like deliberate note spacing (0.25s - 2s = 30-240 BPM)
+      if (gap >= 0.25 && gap <= 2.0) intervals.push(gap);
     }
-    
-    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    if (avgInterval > 0.1 && avgInterval < 2.0) {
-      this.detectedTempo = Math.round(60 / avgInterval);
-    }
+
+    if (intervals.length < 3) return;
+
+    intervals.sort((a, b) => a - b);
+    const median = intervals[Math.floor(intervals.length / 2)];
+    this.detectedTempo = Math.round(60 / median);
   }
 
   analyzeIntensity(velocity) {
@@ -139,6 +142,39 @@ class AIMusician {
     }
     
     return notes;
+  }
+
+  async generateDrumPattern(drumState) {
+    const prompt = `You are a drummer. Given this musical context, suggest a 16-step drum pattern.
+
+Context:
+- Tempo: ${drumState.tempo} BPM
+- Intensity: ${drumState.intensity} (0=quiet, 1=loud)
+- Current step: ${drumState.step}
+- Patterns learned: ${drumState.patternsLearned}
+
+Each step is [kick, snare, hihat, ride] where 1=hit, 0=rest.
+Rules: kick on step 0 always, snare on steps 4 and 12 usually.
+Match the intensity - high intensity = more hits.
+
+Respond ONLY with JSON: [[k,s,h,r], ...] (exactly 16 steps)`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      });
+      const text = response.content[0].text;
+      const start = text.indexOf('[');
+      const end = text.lastIndexOf(']') + 1;
+      if (start >= 0 && end > start) {
+        return JSON.parse(text.substring(start, end));
+      }
+    } catch (error) {
+      console.error('AI drum pattern error:', error.message);
+    }
+    return null;
   }
 
   async generateResponse(voiceCommand = null, contextOverride = null) {

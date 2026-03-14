@@ -4,10 +4,14 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import MIDIListener from './lib/listen.js';
 import MIDIPlayer from './lib/play.js';
+import AudioListener from './lib/audioListen.js';
+import AudioPlayer from './lib/audioPlay.js';
 import AIMusician from './lib/think.js';
 import VoiceListener from './lib/voice.js';
 import MusicTheoryEngine from './lib/predict.js';
 import PredictionBuffer from './lib/buffer.js';
+import MusicModelTrainer from './lib/mlModel.js';
+import DrumEngine from './lib/drums.js';
 import readline from 'readline';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,8 +23,9 @@ class MusicMan {
   constructor() {
     this.settingsPath = path.join(rootDir, 'settings.json');
     this.settings = this.loadSettings();
-    this.listener = new MIDIListener();
-    this.player = new MIDIPlayer();
+    this.listener = null;
+    this.player = null;
+    this.useAudio = false;
     this.voice = new VoiceListener();
     this.ai = new AIMusician(
       process.env.AI_API_KEY,
@@ -28,11 +33,18 @@ class MusicMan {
     );
     this.localEngine = new MusicTheoryEngine();
     this.predictionBuffer = new PredictionBuffer(this.ai);
+    this.mlModel = new MusicModelTrainer(
+      this.ai,
+      path.join(rootDir, 'models', 'music_model')
+    );
+    this.drums = new DrumEngine(path.join(rootDir, 'storage'));
     this.responseQueue = [];
     this.voiceQueue = [];
     this.running = false;
     this.lastBufferRefresh = 0;
-    this.bufferRefreshInterval = 2000; // Refresh every 2 seconds
+    this.bufferRefreshInterval = 2000;
+    this.lastDrumAIRefresh = 0;
+    this.drumAIRefreshInterval = 16000; // Ask AI for new drum pattern every ~16s
   }
 
   loadSettings() {
@@ -48,8 +60,31 @@ class MusicMan {
   }
 
   async setup() {
-    const inputPorts = this.listener.listPorts();
-    const outputPorts = this.player.listPorts();
+    // Try MIDI first
+    const midiListener = new MIDIListener();
+    const midiPlayer = new MIDIPlayer();
+    
+    const inputPorts = midiListener.listPorts();
+    const outputPorts = midiPlayer.listPorts();
+
+    if (inputPorts.length === 0 || outputPorts.length === 0) {
+      console.log('⚠️  No MIDI devices detected. Falling back to audio (mic + speakers).');
+      console.log('   You can sing, hum, or play an instrument into your microphone.\n');
+      
+      this.useAudio = true;
+      this.listener = new AudioListener();
+      this.player = new AudioPlayer();
+      
+      this.settings.midi_input = 'System Microphone';
+      this.settings.midi_output = 'System Speakers/Headphones';
+      this.saveSettings();
+      return;
+    }
+
+    // MIDI devices available
+    this.listener = midiListener;
+    this.player = midiPlayer;
+    this.useAudio = false;
 
     console.log('Available MIDI Input Ports:');
     inputPorts.forEach((port, i) => console.log(`  ${i}: ${port}`));
@@ -57,7 +92,7 @@ class MusicMan {
     console.log('\nAvailable MIDI Output Ports:');
     outputPorts.forEach((port, i) => console.log(`  ${i}: ${port}`));
 
-    if (!this.settings.midi_input) {
+    if (!this.settings.midi_input || !inputPorts.includes(this.settings.midi_input)) {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -84,6 +119,10 @@ class MusicMan {
       const state = this.ai.getMusicalState();
       console.log(`♪ Note ${msg.note} | Tempo: ${state.tempo} BPM | Key: ${state.key} | Energy: ${state.intensity}`);
       this.responseQueue.push(Date.now());
+
+      // Keep drums in sync with detected tempo/intensity
+      this.drums.syncTempo(state.tempo);
+      this.drums.syncIntensity(state.intensity);
       
       // Refresh prediction buffer in background if needed
       const now = Date.now();
@@ -122,11 +161,26 @@ class MusicMan {
         const context = this.ai.getMusicalContext();
         const recentNotes = context.recent_notes;
         
-        // Try prediction buffer first (pre-generated AI response)
-        let notes = this.predictionBuffer.getBestMatch(context);
-        let source = 'AI-buffered';
+        // Try ML model first (if loaded)
+        let notes = null;
+        let source = 'Local';
         
-        // Fallback to instant local engine if buffer empty
+        if (this.mlModel.model) {
+          notes = this.mlModel.predict(context);
+          if (notes && notes.length > 0) {
+            source = 'ML-native';
+          }
+        }
+        
+        // Fallback to AI prediction buffer
+        if (!notes || notes.length === 0) {
+          notes = this.predictionBuffer.getBestMatch(context);
+          if (notes && notes.length > 0) {
+            source = 'AI-buffered';
+          }
+        }
+        
+        // Final fallback to local engine
         if (!notes || notes.length === 0) {
           notes = this.localEngine.generateInstantResponse(
             recentNotes,
@@ -144,6 +198,16 @@ class MusicMan {
         }
       }
       
+      // Periodically ask AI for a new drum pattern
+      const now2 = Date.now();
+      if (now2 - this.lastDrumAIRefresh > this.drumAIRefreshInterval) {
+        this.lastDrumAIRefresh = now2;
+        const drumState = this.drums.getState();
+        this.ai.generateDrumPattern(drumState).then(pattern => {
+          if (pattern) this.drums.applyAIPattern(pattern);
+        }).catch(() => {});
+      }
+
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
@@ -164,8 +228,23 @@ class MusicMan {
   }
 
   async start() {
+    // Try to load ML model
+    const modelLoaded = await this.mlModel.loadModel();
+    if (modelLoaded) {
+      console.log('✓ ML model loaded - using native predictions');
+    } else {
+      console.log('⚠️  No ML model found - run `npm run train` to create one');
+    }
+
     this.listener.connect(this.settings.midi_input);
     this.player.connect(this.settings.midi_output);
+
+    // Wire drums to the correct output
+    if (this.useAudio) {
+      this.drums.connectAudio(this.player);
+    } else {
+      this.drums.connectMidi(this.player);
+    }
 
     this.listener.listen((msg) => this.handleMidiInput(msg));
     
@@ -174,12 +253,15 @@ class MusicMan {
 
     this.running = true;
     this.responseLoop();
+    console.log('🥁 Drummer is listening...');
 
-    console.log('\n🎵 MusicMan is listening to MIDI and voice... (Ctrl+C to stop)\n');
+    const inputType = this.useAudio ? 'audio and voice' : 'MIDI and voice';
+    console.log(`\n🎵 MusicMan is listening to ${inputType}... (Ctrl+C to stop)\n`);
 
     process.on('SIGINT', () => {
       console.log('\n\nStopping...');
       this.running = false;
+      this.drums.stop();
       this.voice.stopListening();
       this.ai.saveSession();
       this.listener.close();

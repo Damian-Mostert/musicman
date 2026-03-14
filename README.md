@@ -1,6 +1,14 @@
 # MusicMan - AI Musical Companion
 
-An AI agent that listens to your MIDI performance and responds with complementary music, remembering melodies it creates.
+An AI agent that listens to your performance and responds with complementary music, remembering melodies it creates.
+
+## Features
+
+✅ **Works with or without MIDI** - Auto-detects and falls back to mic + speakers
+✅ **Zero-latency responses** - Hybrid AI + local music theory engine
+✅ **Voice commands** - Speak naturally to control playback
+✅ **Musical memory** - Remembers and builds on previous phrases
+✅ **Real-time analysis** - Tempo, key, and intensity detection
 
 ## Setup
 
@@ -35,11 +43,21 @@ npm start
 
 ## How It Works
 
-- **Listens** to your MIDI input in real-time
+### Input Options
+1. **MIDI Device** (preferred) - Connect a MIDI keyboard or controller
+2. **Audio Fallback** - Sing, hum, or play an instrument into your microphone
+
+### Hybrid Response System
+- **Local Music Theory Engine** - Instant (<10ms) responses using harmonic rules
+- **AI Prediction Buffer** - Pre-generated Claude responses for creative variety
+- **Zero perceived latency** - Always has a response ready
+
+### What It Does
+- **Listens** to your MIDI or audio input in real-time
 - **Hears** your voice commands ("play a B", "play C major chord")
 - **Analyzes** tempo, key, and intensity of your playing
 - **Thinks** using Claude AI to generate musical responses
-- **Plays** complementary notes back through MIDI output
+- **Plays** complementary notes back through MIDI or speakers
 - **Remembers** melodies in `storage/melodies.json`
 - **Learns** from each session in `storage/memory.json`
 
@@ -66,3 +84,13 @@ Speak naturally:
 - "Play C sharp"
 - "Play D minor chord"
 - "Play G major chord"
+
+## Audio Mode (No MIDI Required)
+
+If no MIDI devices are detected, MusicMan automatically uses:
+- **Input**: System microphone (sing, hum, or play acoustic instrument)
+- **Output**: System speakers or headphones
+- **Pitch detection**: Real-time frequency analysis
+- **Synthesis**: Simple sine wave audio generation
+
+Perfect for testing or when you don't have MIDI hardware!

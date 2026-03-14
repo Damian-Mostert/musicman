@@ -1,5 +1,5 @@
 {
-  "midi_input": [],
-  "midi_output": [],
+  "midi_input": "System Microphone",
+  "midi_output": "System Speakers/Headphones",
   "ai_model": ""
 }

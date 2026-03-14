@@ -9,6 +9,13 @@ class VoiceListener {
   }
 
   startListening(callback) {
+    // Check if Google Cloud credentials are available
+    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.log('⚠️  Google Cloud credentials not found. Voice commands disabled.');
+      console.log('   Set GOOGLE_APPLICATION_CREDENTIALS to enable voice commands.');
+      return;
+    }
+
     this.isListening = true;
     console.log('🎤 Voice listening active... (say commands like "play a B" or "play C major chord")');
 
@@ -25,7 +32,10 @@ class VoiceListener {
     const recognizeStream = this.client
       .streamingRecognize(request)
       .on('error', (error) => {
+        if (!this.isListening) return; // Ignore errors after stopping
         console.error('Speech recognition error:', error.message);
+        console.log('⚠️  Voice commands disabled due to error.');
+        this.isListening = false;
       })
       .on('data', (data) => {
         const transcript = data.results[0]?.alternatives[0]?.transcript;
