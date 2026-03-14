@@ -2,12 +2,11 @@
   "name": "musicman",
   "version": "1.0.0",
   "description": "AI Musical Companion that listens and plays along",
-  "main": "src/index.js",
+  "main": "src/index-local.js",
   "type": "module",
   "scripts": {
     "start": "node src/index-local.js",
     "start:record": "node src/index-local.js record",
-    "start:ai": "node src/index.js",
     "dev": "node --watch src/index-local.js",
     "train": "node src/train.js",
     "test": "node src/test.js"
