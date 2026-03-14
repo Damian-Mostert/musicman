@@ -1,127 +1,136 @@
-// PhraseWatcher — listens to the player's note stream and classifies what's happening.
+// PhraseWatcher — classifies silence gaps and learns the player's natural phrasing.
 //
-// Gap classification (time since last note):
-//   < 600ms          → still playing (no event)
-//   600ms – 2.5s     → phrase end  (natural breath between phrases)
-//   2.5s – 6s        → pause       (player stopped but will resume — hold the beat)
-//   > 6s             → section     (new section or song stop — reset everything)
+// Gap classification (adapts to player over time):
+//   < phraseEndMs        → still playing
+//   phraseEndMs–pauseMs  → phrase end  (natural breath, band keeps playing)
+//   pauseMs–sectionMs    → pause       (player stopped, bass stops, drums hold)
+//   > sectionMs          → section     (full stop — everything stops and resets)
 //
-// Timing quality (beat offset per note while drums running):
-//   < 15% of beat    → on beat
-//   15–35% of beat   → slightly off (mention it after 3 consecutive)
-//   > 35% of beat    → badly off    (mention immediately, flag as mistake)
+// Thresholds start at defaults and learn from the player's actual gap history.
 
 class PhraseWatcher {
   constructor() {
-    this.lastNoteTime    = Date.now();
-    this.noteTimestamps  = [];   // all note times this phrase
-    this.beatOffsets     = [];   // signed beat offsets while drums running (ms)
+    this.lastNoteTime   = Date.now();
+    this.noteTimestamps = [];
+    this.beatOffsets    = [];
 
-    // Thresholds
-    this.phraseEndMs   = 600;    // gap that ends a phrase
-    this.pauseMs       = 2500;   // gap that's a pause (hold beat)
-    this.sectionMs     = 6000;   // gap that's a section break (reset)
+    // Adaptive thresholds
+    this.phraseEndMs = 600;
+    this.pauseMs     = 2500;
+    this.sectionMs   = 6000;
 
-    // Timing feedback state
+    // Gap learning — observe how long the player naturally pauses between phrases
+    this._observedGaps  = [];   // gaps that fell in the phrase-end zone (ms)
+    this._maxGapSamples = 20;
+    this._lastPhraseEndTime = null;
+
+    // Timing feedback
     this.consecutiveSlightlyOff = 0;
     this.lastFeedbackTime       = 0;
-    this.feedbackCooldownMs     = 4000;  // don't spam feedback
+    this.feedbackCooldownMs     = 4000;
 
-    // Callbacks — set by caller
-    this.onPhraseEnd  = null;   // ()          — natural phrase gap, drummer keeps playing
-    this.onPause      = null;   // ()          — player paused, drummer holds
-    this.onSection    = null;   // ()          — long stop, drummer resets
-    this.onTimingFeedback = null; // (msg, severity) — 'slightly_off' | 'badly_off'
+    // Callbacks
+    this.onPhraseEnd      = null;  // (phrase) — natural gap
+    this.onPause          = null;  // ()       — player stopped, hold
+    this.onSection        = null;  // ()       — full stop, reset
+    this.onTimingFeedback = null;  // (msg, severity)
 
-    this._checkInterval = null;
+    this._checkInterval  = null;
     this._phraseEndFired = false;
     this._pauseFired     = false;
   }
 
   start() {
-    this._checkInterval = setInterval(() => this._check(), 100);
+    this._checkInterval = setInterval(() => this._check(), 80);
   }
 
   stop() {
     if (this._checkInterval) clearInterval(this._checkInterval);
   }
 
-  // Call on every note-on
   noteHeard(timestampMs, beatOffsetMs = null) {
     const now = timestampMs || Date.now();
+
+    // If we were in a phrase-end state, measure the gap and learn from it
+    if (this._phraseEndFired && this._lastPhraseEndTime !== null) {
+      const gap = now - this._lastPhraseEndTime;
+      // Only learn from gaps in the phrase-end zone (not pauses or sections)
+      if (gap >= this.phraseEndMs && gap < this.pauseMs) {
+        this._learnGap(gap);
+      }
+    }
+
     this.lastNoteTime = now;
     this.noteTimestamps.push(now);
-    // Keep last 32 notes for phrase analysis
     if (this.noteTimestamps.length > 32) this.noteTimestamps.shift();
 
-    // Reset gap-event flags — player is playing again
     this._phraseEndFired = false;
     this._pauseFired     = false;
+    this._lastPhraseEndTime = null;
 
-    // Timing feedback
-    if (beatOffsetMs !== null) {
-      this._assessTiming(beatOffsetMs, now);
-    }
+    if (beatOffsetMs !== null) this._assessTiming(beatOffsetMs, now);
   }
 
-  // beatOffsetMs: signed ms from nearest beat (negative = behind, positive = ahead)
-  // beatPeriodMs: length of one beat in ms (for relative threshold)
+  // Learn the player's natural phrase gap — adapt phraseEndMs threshold
+  _learnGap(gapMs) {
+    this._observedGaps.push(gapMs);
+    if (this._observedGaps.length > this._maxGapSamples) this._observedGaps.shift();
+    if (this._observedGaps.length < 4) return;
+
+    // Use the 25th percentile of observed gaps as the phrase-end threshold
+    // This means: "the player almost always pauses at least this long between phrases"
+    const sorted = [...this._observedGaps].sort((a, b) => a - b);
+    const p25    = sorted[Math.floor(sorted.length * 0.25)];
+    const p75    = sorted[Math.floor(sorted.length * 0.75)];
+
+    // Clamp to sane range: 300ms–1500ms for phrase end
+    this.phraseEndMs = Math.max(300, Math.min(1500, Math.round(p25 * 0.85)));
+    // Pause threshold = well above the typical phrase gap
+    this.pauseMs     = Math.max(this.phraseEndMs + 500, Math.min(4000, Math.round(p75 * 1.5)));
+
+    console.log(`🎵 Phrase gap learned: phraseEnd=${this.phraseEndMs}ms pause=${this.pauseMs}ms`);
+  }
+
   _assessTiming(beatOffsetMs, now) {
-    const absOffset = Math.abs(beatOffsetMs);
     this.beatOffsets.push(beatOffsetMs);
     if (this.beatOffsets.length > 16) this.beatOffsets.shift();
-
-    // Need at least 4 samples and cooldown respected
     if (this.beatOffsets.length < 4) return;
     if (now - this.lastFeedbackTime < this.feedbackCooldownMs) return;
 
-    // Use median of recent offsets — single bad notes don't trigger feedback
-    const sorted = [...this.beatOffsets].sort((a, b) => a - b);
-    const medianOffset = sorted[Math.floor(sorted.length / 2)];
-    const absMedian    = Math.abs(medianOffset);
-
-    // We need the beat period to compute relative thresholds.
-    // Store it externally via setBeatPeriod().
-    const period = this._beatPeriodMs || 500; // default 120 BPM
-    const relOffset = absMedian / period;
+    const sorted     = [...this.beatOffsets].sort((a, b) => a - b);
+    const median     = sorted[Math.floor(sorted.length / 2)];
+    const absMedian  = Math.abs(median);
+    const period     = this._beatPeriodMs || 500;
+    const relOffset  = absMedian / period;
 
     if (relOffset > 0.35) {
-      // Badly off — consistent large offset
-      const direction = medianOffset < 0 ? 'behind' : 'ahead of';
-      const ms = Math.round(absMedian);
-      this._emitFeedback(
-        `You're consistently ${ms}ms ${direction} the beat`,
-        'badly_off'
-      );
+      const dir = median < 0 ? 'behind' : 'ahead of';
+      this._emitFeedback(`You're consistently ${Math.round(absMedian)}ms ${dir} the beat`, 'badly_off');
       this.consecutiveSlightlyOff = 0;
     } else if (relOffset > 0.15) {
       this.consecutiveSlightlyOff++;
       if (this.consecutiveSlightlyOff >= 3) {
-        const direction = medianOffset < 0 ? 'dragging' : 'rushing';
-        this._emitFeedback(`Timing is ${direction} slightly`, 'slightly_off');
+        const dir = median < 0 ? 'dragging' : 'rushing';
+        this._emitFeedback(`Timing is ${dir} slightly`, 'slightly_off');
         this.consecutiveSlightlyOff = 0;
       }
     } else {
-      // On beat — reset counter
       this.consecutiveSlightlyOff = 0;
     }
   }
 
   _emitFeedback(msg, severity) {
     this.lastFeedbackTime = Date.now();
-    this.beatOffsets = []; // reset after feedback so we don't repeat immediately
+    this.beatOffsets = [];
     if (this.onTimingFeedback) this.onTimingFeedback(msg, severity);
   }
 
-  setBeatPeriod(ms) {
-    this._beatPeriodMs = ms;
-  }
+  setBeatPeriod(ms) { this._beatPeriodMs = ms; }
 
   _check() {
     const silentMs = Date.now() - this.lastNoteTime;
 
     if (silentMs >= this.sectionMs && !this._pauseFired) {
-      // Long silence — section break
       this._pauseFired     = true;
       this._phraseEndFired = true;
       this.noteTimestamps  = [];
@@ -129,18 +138,16 @@ class PhraseWatcher {
       if (this.onSection) this.onSection();
 
     } else if (silentMs >= this.pauseMs && !this._pauseFired) {
-      // Medium silence — pause (hold beat, don't reset)
       this._pauseFired = true;
       if (this.onPause) this.onPause();
 
     } else if (silentMs >= this.phraseEndMs && !this._phraseEndFired) {
-      // Short gap — phrase end (drummer keeps playing, melody can respond)
-      this._phraseEndFired = true;
+      this._phraseEndFired    = true;
+      this._lastPhraseEndTime = Date.now();
       if (this.onPhraseEnd) this.onPhraseEnd(this._currentPhrase());
     }
   }
 
-  // Returns timing stats for the current phrase
   _currentPhrase() {
     return {
       noteCount:    this.noteTimestamps.length,
@@ -163,7 +170,9 @@ class PhraseWatcher {
     this.consecutiveSlightlyOff = 0;
     this._phraseEndFired        = false;
     this._pauseFired            = false;
+    this._lastPhraseEndTime     = null;
     this.lastNoteTime           = Date.now();
+    // Don't reset _observedGaps — keep learned thresholds across sections
   }
 }
 

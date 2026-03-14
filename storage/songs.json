@@ -14828,7 +14828,7 @@
   {
     "name": "mmmmm",
     "created": "2026-03-14T10:13:54.933Z",
-    "lastPlayed": "2026-03-14T10:17:08.184Z",
+    "lastPlayed": "2026-03-14T10:19:49.557Z",
     "tempo": 116,
     "key": null,
     "timeSignature": "4/4",
@@ -14838,6 +14838,681 @@
       {
         "timestamp": "2026-03-14T10:17:08.184Z",
         "tempo": 116,
+        "key": "B"
+      },
+      {
+        "timestamp": "2026-03-14T10:19:49.557Z",
+        "tempo": 115,
+        "key": "B"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:19:54.491Z",
+    "lastPlayed": "2026-03-14T10:23:21.292Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:23:21.292Z",
+        "tempo": 115,
+        "key": "C"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:25:05.520Z",
+    "lastPlayed": "2026-03-14T10:28:50.841Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:28:50.841Z",
+        "tempo": 115,
+        "key": "A"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:28:57.210Z",
+    "lastPlayed": "2026-03-14T10:31:18.695Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:31:18.695Z",
+        "tempo": 115,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:31:28.285Z",
+    "lastPlayed": "2026-03-14T10:34:55.511Z",
+    "tempo": 116,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:34:55.511Z",
+        "tempo": 116,
+        "key": "G"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:35:28.184Z",
+    "lastPlayed": "2026-03-14T10:42:03.235Z",
+    "tempo": 116,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:38:40.049Z",
+        "tempo": 116,
+        "key": "B"
+      },
+      {
+        "timestamp": "2026-03-14T10:42:03.235Z",
+        "tempo": 115,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:42:06.925Z",
+    "lastPlayed": "2026-03-14T10:42:35.563Z",
+    "tempo": 116,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:42:35.563Z",
+        "tempo": 116,
+        "key": "B"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:42:41.115Z",
+    "lastPlayed": "2026-03-14T10:43:15.416Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:43:15.416Z",
+        "tempo": 115,
+        "key": "B"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:43:21.621Z",
+    "lastPlayed": "2026-03-14T10:43:43.635Z",
+    "tempo": 116,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:43:43.635Z",
+        "tempo": 116,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:44:18.325Z",
+    "lastPlayed": "2026-03-14T10:46:26.296Z",
+    "tempo": 116,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:46:26.296Z",
+        "tempo": 116,
+        "key": "A"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:47:15.114Z",
+    "lastPlayed": "2026-03-14T10:48:48.812Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:48:48.812Z",
+        "tempo": 115,
+        "key": "F"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:48:52.606Z",
+    "lastPlayed": "2026-03-14T10:49:10.380Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:49:10.380Z",
+        "tempo": 115,
+        "key": "B"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:49:13.646Z",
+    "lastPlayed": "2026-03-14T10:49:45.172Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:49:45.172Z",
+        "tempo": 115,
+        "key": "A"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:50:06.952Z",
+    "lastPlayed": "2026-03-14T10:51:37.219Z",
+    "tempo": 115,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:51:37.219Z",
+        "tempo": 115,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:57:30.740Z",
+    "lastPlayed": "2026-03-14T10:58:12.328Z",
+    "tempo": null,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:58:12.328Z",
+        "tempo": 120,
+        "key": "G"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:58:16.773Z",
+    "lastPlayed": "2026-03-14T10:58:16.776Z",
+    "tempo": null,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T10:58:20.539Z",
+    "lastPlayed": "2026-03-14T10:58:52.786Z",
+    "tempo": null,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T10:58:52.786Z",
+        "tempo": 120,
+        "key": "B"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "1",
+    "created": "2026-03-14T10:59:38.562Z",
+    "lastPlayed": "2026-03-14T11:05:07.966Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:01:38.704Z",
+        "tempo": 117,
+        "key": "G"
+      },
+      {
+        "timestamp": "2026-03-14T11:05:07.966Z",
+        "tempo": 120,
+        "key": "D"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:02:49.212Z",
+    "lastPlayed": "2026-03-14T11:02:49.212Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:05:11.775Z",
+    "lastPlayed": "2026-03-14T11:08:01.905Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:08:01.905Z",
+        "tempo": 117,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:09:08.784Z",
+    "lastPlayed": "2026-03-14T11:10:21.807Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:10:21.807Z",
+        "tempo": 117,
+        "key": "F#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:10:25.582Z",
+    "lastPlayed": "2026-03-14T11:13:12.272Z",
+    "tempo": 118,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:13:12.272Z",
+        "tempo": 118,
+        "key": "C#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:13:17.081Z",
+    "lastPlayed": "2026-03-14T11:13:17.084Z",
+    "tempo": null,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:13:21.485Z",
+    "lastPlayed": "2026-03-14T11:15:13.851Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:15:13.851Z",
+        "tempo": 117,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:15:48.006Z",
+    "lastPlayed": "2026-03-14T11:16:57.167Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:16:57.167Z",
+        "tempo": 117,
+        "key": "F#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:17:38.281Z",
+    "lastPlayed": "2026-03-14T11:18:22.259Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:18:22.259Z",
+        "tempo": 117,
+        "key": "G"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:18:28.650Z",
+    "lastPlayed": "2026-03-14T11:19:22.716Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:19:22.716Z",
+        "tempo": 117,
+        "key": "E"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "1",
+    "created": "2026-03-14T11:20:33.336Z",
+    "lastPlayed": "2026-03-14T11:22:17.900Z",
+    "tempo": 78,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:22:17.900Z",
+        "tempo": 78,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:22:55.786Z",
+    "lastPlayed": "2026-03-14T11:23:29.515Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:23:29.515Z",
+        "tempo": 117,
+        "key": "E"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:23:33.279Z",
+    "lastPlayed": "2026-03-14T11:23:33.283Z",
+    "tempo": null,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:23:38.135Z",
+    "lastPlayed": "2026-03-14T11:25:22.748Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:25:22.748Z",
+        "tempo": 117,
+        "key": "A"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:25:57.856Z",
+    "lastPlayed": "2026-03-14T11:27:07.316Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:27:07.316Z",
+        "tempo": 117,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:27:10.762Z",
+    "lastPlayed": "2026-03-14T11:27:31.211Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:27:31.211Z",
+        "tempo": 117,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:27:36.839Z",
+    "lastPlayed": "2026-03-14T11:28:11.853Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:28:11.853Z",
+        "tempo": 117,
+        "key": "A"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:28:15.535Z",
+    "lastPlayed": "2026-03-14T11:30:14.443Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:30:14.443Z",
+        "tempo": 117,
+        "key": "A#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:30:55.854Z",
+    "lastPlayed": "2026-03-14T11:32:49.346Z",
+    "tempo": 117,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:32:49.346Z",
+        "tempo": 117,
+        "key": "F#"
+      }
+    ],
+    "drumPatterns": [],
+    "melodies": []
+  },
+  {
+    "name": "Untitled",
+    "created": "2026-03-14T11:32:52.726Z",
+    "lastPlayed": "2026-03-14T11:34:16.271Z",
+    "tempo": 118,
+    "key": null,
+    "timeSignature": "4/4",
+    "style": null,
+    "teachingNotes": [],
+    "sessions": [
+      {
+        "timestamp": "2026-03-14T11:34:16.271Z",
+        "tempo": 118,
         "key": "B"
       }
     ],

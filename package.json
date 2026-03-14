@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/index-local.js",
+    "start:record": "node src/index-local.js record",
     "start:ai": "node src/index.js",
     "dev": "node --watch src/index-local.js",
     "train": "node src/train.js",
@@ -26,6 +27,7 @@
     "dotenv": "^16.4.5",
     "easymidi": "^3.0.1",
     "node-record-lpcm16": "^1.0.1",
+    "node-web-audio-api": "^1.0.8",
     "speaker": "^0.5.5"
   }
 }

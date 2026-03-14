@@ -206,6 +206,8 @@ class MusicMan {
   }
 
   async start() {
+    const isRecording = process.argv.includes('record');
+
     await this.drumModel.load();
     await this.melodyModel.load();
 
@@ -219,6 +221,14 @@ class MusicMan {
       this.drums.connectMidi(this.player);
       this.bass.connectMidi(this.player);
     }
+    this.drums.connectBass(this.bass);
+
+    if (isRecording && this.useAudio) {
+      this.listener.recTarget = this.player;
+      this.player.startRecording();
+    } else if (isRecording) {
+      console.log('⚠️  Recording only works in audio mode (no MIDI devices).');
+    }
 
     this.drums.onPhraseEnd = (phrase) => {
       this.bass.phraseEnd();
@@ -226,10 +236,11 @@ class MusicMan {
 
     this.drums.onPause = () => {
       this.notesSinceResponse = 0;
+      this.bass.stop();  // bass stops when player stops
     };
 
     this.drums.onSection = () => {
-      this.bass.stop();
+      this.bass.stop();  // full stop — bass and drums both reset
       if (this.lastContext) {
         this.notesSinceResponse = 0;
         this.localEngine.resetPhrase();
@@ -289,6 +300,12 @@ class MusicMan {
       this.running = false;
       this.drums.stop();
       this.bass.stop();
+
+      if (isRecording && this.useAudio) {
+        const ts   = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').slice(0, 19);
+        const file = path.join(rootDir, 'saved', `${ts}.wav`);
+        this.player.stopRecording(file);
+      }
       const sessionData = this.ai.saveSession();
       this.songs.recordSession({
         timestamp: new Date().toISOString(),

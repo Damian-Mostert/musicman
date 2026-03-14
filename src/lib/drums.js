@@ -134,6 +134,7 @@ class DrumEngine {
 
   connectMidi(p)  { this.player = p; this.useAudio = false; }
   connectAudio(p) { this.audioPlayer = p; this.useAudio = true; }
+  connectBass(b)  { this.bass = b; }
 
   start() { this._startPhraseWatcher(); }
 
@@ -212,6 +213,11 @@ class DrumEngine {
     const [kick, snare, hihat, ride, hh_vel, k_vel, s_vel] = hit;
     const scale = 0.55 + this.intensity * 0.45;
 
+    // Notify bass on every quarter-note beat (every 4 steps)
+    if (!isFill && this.step % 4 === 0 && this.bass) {
+      const beatIndex = Math.floor(this.step / 4);
+      this.bass.onBeat(beatIndex);
+    }
     // ── Velocity humanisation ─────────────────────────────────────────────────
     // Each hit gets ±12 velocity jitter. Fills hit harder.
     const jitter = () => (Math.random() - 0.5) * 24;
@@ -248,8 +254,7 @@ class DrumEngine {
 
   _synthDrum(type, velocity) {
     if (!this.audioPlayer) return;
-    if (!this.audioPlayer.drumHits) this.audioPlayer.drumHits = [];
-    this.audioPlayer.drumHits.push({ type, velocity, time: 0 });
+    this.audioPlayer.triggerDrum(type, velocity);
   }
 
   // ── Fills ──────────────────────────────────────────────────────────────────

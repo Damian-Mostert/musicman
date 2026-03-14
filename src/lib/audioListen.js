@@ -9,9 +9,10 @@ class AudioListener extends EventEmitter {
     this.isListening = false;
     this.sampleRate = 16000;
     this.lastNoteTime = 0;
-    this.noteThrottle = 333;     // ms between notes — floor of 180 BPM 8th notes
+    this.noteThrottle = 333;
     this.lastNote = null;
-    this.consecutiveSame = 0;    // suppress repeated identical notes from noise
+    this.consecutiveSame = 0;
+    this.recTarget = null;  // set to AudioPlayer instance when recording
   }
 
   listPorts() {
@@ -41,7 +42,15 @@ class AudioListener extends EventEmitter {
     
     stream.on('data', (chunk) => {
       if (!this.isListening) return;
-      
+
+      // Capture raw mic PCM if recording
+      if (this.recTarget?._recording) {
+        const samples = new Int16Array(chunk.buffer, chunk.byteOffset, chunk.length / 2);
+        const nowMs   = Date.now();
+        if (this.recTarget._micStartMs === 0) this.recTarget._micStartMs = nowMs;
+        this.recTarget.micChunks.push({ data: new Int16Array(samples), ts: nowMs });
+      }
+
       chunkCount++;
       
       const samples = new Int16Array(chunk.buffer, chunk.byteOffset, chunk.length / 2);
