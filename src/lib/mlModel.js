@@ -210,9 +210,30 @@ export class MelodyModel {
 
   // Call when player stops — penalise the last response
   markLastAsMistake() {
-    if (this.lastSample) {
-      this.lastSample.weight = 0.1; // don't erase, just down-weight
-    }
+    if (this.lastSample) this.lastSample.weight = 0.1;
+  }
+
+  // Q — wrong note/chord, stop it and purge from memory
+  markLastAsBad() {
+    if (!this.lastSample) return;
+    const idx = this.trainingData.indexOf(this.lastSample);
+    if (idx !== -1) this.trainingData.splice(idx, 1);
+    this.lastSample = null;
+  }
+
+  // W — didn't like it, heavy down-weight but keep for contrast
+  markLastAsDisliked() {
+    if (this.lastSample) this.lastSample.weight = 0.05;
+  }
+
+  // E — good, reinforce strongly
+  markLastAsGood() {
+    if (this.lastSample) this.lastSample.weight = 2.0;
+  }
+
+  // R — right notes, wrong timing — keep notes but halve weight
+  markLastAsBadTiming() {
+    if (this.lastSample) this.lastSample.weight = 0.4;
   }
 
   async trainAsync() {
@@ -221,12 +242,14 @@ export class MelodyModel {
     try {
       if (!this.model) this.model = this._createModel();
 
-      // Duplicate high-weight samples so good responses are reinforced
+      // Expand dataset by repeating samples proportional to their weight.
+      // weight=2.0 (good) → 4 copies, weight=1 → 2, weight=0.4 → 1, weight=0.05 → 0 (skipped)
       const expanded = [];
       for (const s of this.trainingData) {
-        expanded.push(s);
-        if (s.weight >= 1) expanded.push(s); // good samples appear twice
+        const copies = Math.round(s.weight * 2);
+        for (let i = 0; i < copies; i++) expanded.push(s);
       }
+      if (expanded.length === 0) return;
 
       const xs = tf.tensor2d(expanded.map(d => d.input));
       const ys = tf.tensor2d(expanded.map(d => d.output));

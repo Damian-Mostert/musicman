@@ -19,6 +19,13 @@ class AudioPlayer {
     this._recStartMs     = 0;    // wall-clock ms when recording started
     this.micChunks       = [];   // { data: Int16Array, wallMs: number }
     this._micStartMs     = 0;    // wall-clock ms of first mic chunk
+
+    // Echo reference: rolling buffer of raw output at ctx.sampleRate
+    this._refBuf         = [];   // Float32Array chunks
+    this._refBufLen      = 0;    // total samples stored
+    this._refMaxSamples  = 0;    // set once ctx.sampleRate is known
+    this._refNode        = null;
+    this._startRefCapture();
   }
 
   listPorts() { return ['System Speakers/Headphones']; }
@@ -294,6 +301,68 @@ class AudioPlayer {
       noise.start(now); noise.stop(now + 0.19);
       ping.start(now); ping.stop(now + 0.26);
     }
+  }
+
+  // ── Echo reference capture ─────────────────────────────────────────────────
+  // Continuously captures master output into a rolling 2-second PCM buffer
+  // at the native sample rate. AudioListener calls getReferenceSamples() to
+  // subtract our own sound from the mic before pitch detection.
+
+  _startRefCapture() {
+    // node-web-audio-api renders lazily — defer until first audio tick
+    const tryConnect = () => {
+      if (this._refNode) return;
+      const sr = this.ctx.sampleRate;
+      this._refMaxSamples = sr * 2; // 2-second rolling window
+      const proc = this.ctx.createScriptProcessor(4096, 1, 1);
+      proc.onaudioprocess = (e) => {
+        const ch = e.inputBuffer.getChannelData(0);
+        this._refBuf.push(new Float32Array(ch));
+        this._refBufLen += ch.length;
+        // Trim oldest chunks to stay within window
+        while (this._refBufLen - this._refBuf[0].length >= this._refMaxSamples) {
+          this._refBufLen -= this._refBuf.shift().length;
+        }
+      };
+      this.master.connect(proc);
+      proc.connect(this.ctx.destination);
+      this._refNode = proc;
+    };
+    // Retry until the AudioContext is running
+    const poll = setInterval(() => {
+      if (this.ctx.state === 'running') { tryConnect(); clearInterval(poll); }
+    }, 100);
+  }
+
+  // Returns the last `count` samples of output resampled to `targetRate` (mic rate).
+  // Returns null if nothing has been captured yet.
+  getReferenceSamples(count, targetRate) {
+    if (this._refBufLen === 0) return null;
+    const sr = this.ctx.sampleRate;
+    // How many native samples do we need to cover `count` target samples?
+    const nativeNeeded = Math.ceil(count * (sr / targetRate));
+    const take = Math.min(nativeNeeded, this._refBufLen);
+
+    // Flatten the tail of the rolling buffer
+    const flat = new Float32Array(take);
+    let pos = take;
+    for (let i = this._refBuf.length - 1; i >= 0 && pos > 0; i--) {
+      const chunk = this._refBuf[i];
+      const copyLen = Math.min(chunk.length, pos);
+      flat.set(chunk.subarray(chunk.length - copyLen), pos - copyLen);
+      pos -= copyLen;
+    }
+
+    // Downsample to targetRate
+    const ratio = sr / targetRate;
+    const out = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const srcPos = i * ratio;
+      const lo = Math.floor(srcPos);
+      const hi = Math.min(lo + 1, flat.length - 1);
+      out[i] = flat[lo] * (1 - (srcPos - lo)) + flat[hi] * (srcPos - lo);
+    }
+    return out;
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

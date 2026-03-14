@@ -13,6 +13,7 @@ class AudioListener extends EventEmitter {
     this.lastNote = null;
     this.consecutiveSame = 0;
     this.recTarget = null;  // set to AudioPlayer instance when recording
+    this.echoRef   = null;  // set to AudioPlayer instance to enable AEC
   }
 
   listPorts() {
@@ -52,8 +53,9 @@ class AudioListener extends EventEmitter {
       }
 
       chunkCount++;
-      
-      const samples = new Int16Array(chunk.buffer, chunk.byteOffset, chunk.length / 2);
+
+      let samples = new Int16Array(chunk.buffer, chunk.byteOffset, chunk.length / 2);
+      if (this.echoRef) samples = this._cancelEcho(samples);
       
       // Calculate RMS for debugging
       let rms = 0;
@@ -97,6 +99,33 @@ class AudioListener extends EventEmitter {
     stream.on('error', (err) => {
       console.error('Audio stream error:', err.message);
     });
+  }
+
+  // Acoustic echo cancellation — subtracts the player's reference signal from
+  // the mic. Uses a single adaptive scalar (normalized cross-correlation) to
+  // handle the room's unknown gain and slight timing offset.
+  _cancelEcho(samples) {
+    const ref = this.echoRef.getReferenceSamples(samples.length, this.sampleRate);
+    if (!ref) return samples;
+
+    // Optimal scalar: alpha = dot(mic, ref) / dot(ref, ref)
+    // Least-squares gain that minimises residual energy.
+    let dot = 0, refPow = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const s = samples[i] / 32768;
+      dot    += s * ref[i];
+      refPow += ref[i] * ref[i];
+    }
+    if (refPow < 1e-9) return samples; // player is silent — nothing to cancel
+
+    const alpha = dot / refPow;
+    const out = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+      out[i] = Math.round(Math.max(-32768, Math.min(32767,
+        samples[i] - alpha * ref[i] * 32768
+      )));
+    }
+    return out;
   }
 
   detectPitch(samples) {

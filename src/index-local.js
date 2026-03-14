@@ -82,7 +82,8 @@ class MusicMan {
       this.useAudio = true;
       this.listener = new AudioListener();
       this.player = new AudioPlayer();
-      
+      this.listener.echoRef = this.player; // enable acoustic echo cancellation
+
       this.settings.midi_input = 'System Microphone';
       this.settings.midi_output = 'System Speakers/Headphones';
       this.saveSettings();
@@ -213,6 +214,69 @@ class MusicMan {
     }
   }
 
+  _shutdown(isRecording) {
+    console.log('\n\nStopping...');
+    this.running = false;
+    this.drums.stop();
+    this.bass.stop();
+
+    if (isRecording && this.useAudio) {
+      const ts   = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').slice(0, 19);
+      const file = path.join(rootDir, 'saved', `${ts}.wav`);
+      this.player.stopRecording(file);
+    }
+    this.ai.saveSession();
+    this.songs.recordSession({
+      timestamp: new Date().toISOString(),
+      tempo: this.drums.tempo,
+      key: this.lastContext?.key || null
+    });
+    this.listener.close();
+    this.player.close();
+    console.log(`Session saved to "${this.songs.currentSong?.name}". Goodbye!`);
+    process.exit(0);
+  }
+
+  _setupFeedbackKeys(isRecording) {
+    const LABELS = { q: '🛑 BAD (stopped)', w: '👎 DISLIKED', e: '👍 GOOD', r: '⏱  BAD TIMING' };
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.on('line', (line) => {
+      const k = line.trim().toLowerCase()[0];
+      if (!k || !LABELS[k]) return;
+
+      console.log(`🎛  Feedback: ${LABELS[k]}`);
+
+      if (k === 'q') {
+        if (this.useAudio) {
+          for (const [note] of (this.player._activeMelodyNotes || new Map()))
+            this.player.stopMelodyNote(note);
+        } else {
+          for (const [note] of (this.player._activeNotes || new Map()))
+            this.player.stopNote(note);
+        }
+        this.melodyModel.markLastAsBad();
+      } else if (k === 'w') {
+        this.melodyModel.markLastAsDisliked();
+      } else if (k === 'e') {
+        this.melodyModel.markLastAsGood();
+      } else if (k === 'r') {
+        this.melodyModel.markLastAsBadTiming();
+      }
+
+      this.melodyModel.trainAsync().catch(() => {});
+    });
+
+    rl.on('close', () => this._shutdown(isRecording));
+
+    console.log('\n🎛  Feedback controls (type a letter + Enter):');
+    console.log('   Q = 🛑 Bad — stop playing it immediately, forget it');
+    console.log('   W = 👎 Dislike — keep it but avoid in future');
+    console.log('   E = 👍 Good — that was great, do more like that');
+    console.log('   R = ⏱  Bad timing — right notes, wrong moment');
+    console.log('   Ctrl+C = quit\n');
+  }
+
   async start() {
     const isRecording = process.argv.includes('record');
 
@@ -285,6 +349,8 @@ class MusicMan {
     this.responseLoop();
     this.drums.start();
 
+    this._setupFeedbackKeys(isRecording);
+
     // Pass song settings into AI context
     const song = this.songs.currentSong;
     if (song) {
@@ -303,28 +369,7 @@ class MusicMan {
       console.log();
     }
 
-    process.on('SIGINT', () => {
-      console.log('\n\nStopping...');
-      this.running = false;
-      this.drums.stop();
-      this.bass.stop();
-
-      if (isRecording && this.useAudio) {
-        const ts   = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').slice(0, 19);
-        const file = path.join(rootDir, 'saved', `${ts}.wav`);
-        this.player.stopRecording(file);
-      }
-      const sessionData = this.ai.saveSession();
-      this.songs.recordSession({
-        timestamp: new Date().toISOString(),
-        tempo: this.drums.tempo,
-        key: this.lastContext?.key || null
-      });
-      this.listener.close();
-      this.player.close();
-      console.log(`Session saved to "${this.songs.currentSong?.name}". Goodbye!`);
-      process.exit(0);
-    });
+    process.on('SIGINT', () => this._shutdown(isRecording));
   }
 }
 
