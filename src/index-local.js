@@ -194,14 +194,22 @@ class MusicMan {
 
   async playNotes(notes) {
     for (const noteData of notes) {
-      this.player.playNote(noteData.note, noteData.velocity || 64);
+      if (this.useAudio) {
+        this.player.playMelodyNote(noteData.note, noteData.velocity || 64);
+      } else {
+        this.player.playNote(noteData.note, noteData.velocity || 64);
+      }
       const duration = noteData.duration || 0.4;
       await new Promise(resolve => setTimeout(resolve, duration * 700));
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
     for (const noteData of notes) {
-      this.player.stopNote(noteData.note);
+      if (this.useAudio) {
+        this.player.stopMelodyNote(noteData.note);
+      } else {
+        this.player.stopNote(noteData.note);
+      }
     }
   }
 
